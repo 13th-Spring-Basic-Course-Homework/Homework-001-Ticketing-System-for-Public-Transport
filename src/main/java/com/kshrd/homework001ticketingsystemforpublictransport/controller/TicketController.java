@@ -6,6 +6,8 @@ import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request.
 import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.response.APIResponse;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.enums.TicketStatus;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +35,7 @@ public class TicketController {
 
     @Operation(summary = "Create a new ticket")
     @PostMapping
-    public ResponseEntity<APIResponse<Ticket>> createTicket(@RequestBody TicketRequest ticketRequest) {
+    public ResponseEntity<APIResponse<Ticket>> createTicket(@RequestBody @Valid TicketRequest ticketRequest) {
         Ticket ticket = new Ticket(
                 TICKET_ID.incrementAndGet(),
                 ticketRequest.getPassengerName(),
@@ -51,7 +53,7 @@ public class TicketController {
 
     @Operation(summary = "Get a ticket by ID")
     @GetMapping("/{ticketId}")
-    public ResponseEntity<APIResponse<Ticket>> getTicket(@PathVariable Long ticketId) {
+    public ResponseEntity<APIResponse<Ticket>> getTicket(@PathVariable @Positive Long ticketId) {
         return TICKETS.stream()
                 .filter(ticket -> ticket.getTicketId().equals(ticketId))
                 .findFirst()
@@ -61,7 +63,7 @@ public class TicketController {
 
     @Operation(summary = "Update an existing ticket by ID")
     @PutMapping("/{ticketId}")
-    public ResponseEntity<APIResponse<Ticket>> updateTicket(@PathVariable Long ticketId, @RequestBody TicketRequest ticketRequest) {
+    public ResponseEntity<APIResponse<Ticket>> updateTicket(@PathVariable @Positive Long ticketId, @RequestBody @Valid TicketRequest ticketRequest) {
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 ticket.setPassengerName(ticketRequest.getPassengerName());
@@ -80,7 +82,7 @@ public class TicketController {
 
     @Operation(summary = "Delete a ticket by ID")
     @DeleteMapping("/{ticketId}")
-    public ResponseEntity<APIResponse<Ticket>> deleteTicket(@PathVariable Long ticketId) {
+    public ResponseEntity<APIResponse<Ticket>> deleteTicket(@PathVariable @Positive Long ticketId) {
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 TICKETS.remove(ticket);
@@ -96,11 +98,11 @@ public class TicketController {
         return buildResponse(true,"All tickets retrieved successfully.", HttpStatus.OK, TICKETS);
     }
 
-    @Operation(summary = "Filter tickets by status or travel date")
+    @Operation(summary = "Filter tickets by status and travel date")
     @GetMapping("/filter")
-    public ResponseEntity<APIResponse<List<Ticket>>> filteredTicketsByTickStatusOrTravelDate(@RequestParam(required = false) TicketStatus ticketStatus, @RequestParam(required = false) LocalDate travelDate) {
+    public ResponseEntity<APIResponse<List<Ticket>>> filteredTicketsByTickStatusAndTravelDate(@RequestParam TicketStatus ticketStatus, @RequestParam LocalDate travelDate) {
         List<Ticket> filteredTickets = TICKETS.stream()
-                .filter(ticket -> ticket.getTicketStatus().equals(ticketStatus) || ticket.getTravelDate().equals(travelDate))
+                .filter(ticket -> ticket.getTicketStatus().equals(ticketStatus) && ticket.getTravelDate().equals(travelDate))
                 .toList();
         return buildResponse(true,"Tickets filtered successfully.", HttpStatus.OK, filteredTickets);
     }
@@ -116,7 +118,7 @@ public class TicketController {
 
     @Operation(summary = "Bulk update payment status for multiple tickets")
     @PutMapping
-    public ResponseEntity<APIResponse<List<Ticket>>> updatePaymentStatus(@RequestBody UpdatePaymentStatusRequest updatePaymentStatusRequest) {
+    public ResponseEntity<APIResponse<List<Ticket>>> updatePaymentStatus(@RequestBody @Valid UpdatePaymentStatusRequest updatePaymentStatusRequest) {
         List<Ticket> updatedTickets = new ArrayList<>();
         for (Ticket ticket : TICKETS) {
             if (updatePaymentStatusRequest.getTicketIds().contains(ticket.getTicketId())) {
@@ -129,7 +131,7 @@ public class TicketController {
 
     @Operation(summary = "Bulk create tickets")
     @PostMapping("/bulk")
-    public ResponseEntity<APIResponse<List<Ticket>>> bulkTickets(@RequestBody List<TicketRequest> ticketRequests) {
+    public ResponseEntity<APIResponse<List<Ticket>>> bulkTickets(@RequestBody @Valid List<TicketRequest> ticketRequests) {
         List<Ticket> createdTickets = new ArrayList<>();
         for (TicketRequest ticketRequest : ticketRequests) {
             Ticket ticket = new Ticket(

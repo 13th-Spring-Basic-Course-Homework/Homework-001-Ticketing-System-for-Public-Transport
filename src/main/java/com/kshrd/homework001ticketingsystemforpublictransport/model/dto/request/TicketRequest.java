@@ -1,94 +1,47 @@
 package com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request;
 
 import com.kshrd.homework001ticketingsystemforpublictransport.model.enums.TicketStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TicketRequest {
+
+    @NotBlank
+    @NotNull
     private String passengerName;
+
+    @PastOrPresent
     private LocalDate travelDate;
+
+    @NotBlank
+    @NotNull
     private String sourceStation;
+
+    @NotBlank
+    @NotNull
     private String destinationStation;
+
+    @Positive
     private Double price;
+
+    @NotNull
     private Boolean paymentStatus;
+
+    @NotNull
     private TicketStatus ticketStatus;
+
+    @Size(max = 10)
     private String seatNumber;
-
-    public TicketRequest() {
-    }
-
-    public TicketRequest(Long ticketId, String passengerName, LocalDate travelDate, String sourceStation, String destinationStation, Double price, Boolean paymentStatus, TicketStatus ticketStatus, String seatNumber) {
-        this.passengerName = passengerName;
-        this.travelDate = travelDate;
-        this.sourceStation = sourceStation;
-        this.destinationStation = destinationStation;
-        this.price = price;
-        this.paymentStatus = paymentStatus;
-        this.ticketStatus = ticketStatus;
-        this.seatNumber = seatNumber;
-    }
-
-    public String getPassengerName() {
-        return passengerName;
-    }
-
-    public void setPassengerName(String passengerName) {
-        this.passengerName = passengerName;
-    }
-
-    public LocalDate getTravelDate() {
-        return travelDate;
-    }
-
-    public void setTravelDate(LocalDate travelDate) {
-        this.travelDate = travelDate;
-    }
-
-    public String getSourceStation() {
-        return sourceStation;
-    }
-
-    public void setSourceStation(String sourceStation) {
-        this.sourceStation = sourceStation;
-    }
-
-    public String getDestinationStation() {
-        return destinationStation;
-    }
-
-    public void setDestinationStation(String destinationStation) {
-        this.destinationStation = destinationStation;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public Boolean getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(Boolean paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
-    public TicketStatus getTicketStatus() {
-        return ticketStatus;
-    }
-
-    public void setTicketStatus(TicketStatus ticketStatus) {
-        this.ticketStatus = ticketStatus;
-    }
-
-    public String getSeatNumber() {
-        return seatNumber;
-    }
-
-    public void setSeatNumber(String seatNumber) {
-        this.seatNumber = seatNumber;
-    }
 }
+
