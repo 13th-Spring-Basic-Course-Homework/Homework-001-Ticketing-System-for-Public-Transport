@@ -5,15 +5,17 @@ import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request.
 import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request.UpdatePaymentStatusRequest;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.response.APIResponse;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.enums.TicketStatus;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.kshrd.homework001ticketingsystemforpublictransport.model.utils.ResponseUtil.buildResponse;
 
 @RestController
 @RequestMapping("api/v1/tickets")
@@ -29,6 +31,7 @@ public class TicketController {
         TICKETS.add(new Ticket(4L, "Bob Brown", LocalDate.of(2024, 12, 23), "Station G", "Station H", 200.0, true, TicketStatus.COMPLETED, "D4"));
     }
 
+    @Operation(summary = "Create a new ticket")
     @PostMapping
     public ResponseEntity<APIResponse<Ticket>> createTicket(@RequestBody TicketRequest ticketRequest) {
         Ticket ticket = new Ticket(
@@ -42,42 +45,23 @@ public class TicketController {
                 ticketRequest.getTicketStatus(),
                 ticketRequest.getSeatNumber()
         );
-        APIResponse<Ticket> response = new APIResponse<>(
-                "Ticket successfully created.",
-                HttpStatus.CREATED,
-                ticket,
-                LocalDateTime.now()
-        );
         TICKETS.add(ticket);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return buildResponse(true,"Ticket created successfully.", HttpStatus.CREATED, ticket);
     }
 
+    @Operation(summary = "Get a ticket by ID")
     @GetMapping("/{ticketId}")
     public ResponseEntity<APIResponse<Ticket>> getTicket(@PathVariable Long ticketId) {
-        APIResponse<Ticket> response;
-        for (Ticket ticket : TICKETS) {
-            if (ticket.getTicketId().equals(ticketId)) {
-                response = new APIResponse<>(
-                        "Ticket successfully found.",
-                        HttpStatus.OK,
-                        ticket,
-                        LocalDateTime.now()
-                );
-                return ResponseEntity.status(HttpStatus.OK).body(response);
-            }
-        }
-        response = new APIResponse<>(
-                "Ticket not found with ID: " + ticketId + ".",
-                HttpStatus.OK,
-                null,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        return TICKETS.stream()
+                .filter(ticket -> ticket.getTicketId().equals(ticketId))
+                .findFirst()
+                .map(ticket -> buildResponse(true,"Ticket retrieved successfully.", HttpStatus.OK, ticket))
+                .orElse(buildResponse(false,"No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null));
     }
 
+    @Operation(summary = "Update an existing ticket by ID")
     @PutMapping("/{ticketId}")
     public ResponseEntity<APIResponse<Ticket>> updateTicket(@PathVariable Long ticketId, @RequestBody TicketRequest ticketRequest) {
-        APIResponse<Ticket> response;
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 ticket.setPassengerName(ticketRequest.getPassengerName());
@@ -88,116 +72,65 @@ public class TicketController {
                 ticket.setPaymentStatus(ticketRequest.getPaymentStatus());
                 ticket.setTicketStatus(ticketRequest.getTicketStatus());
                 ticket.setSeatNumber(ticketRequest.getSeatNumber());
-                response = new APIResponse<>(
-                        "Ticket successfully updated.",
-                        HttpStatus.OK,
-                        ticket,
-                        LocalDateTime.now()
-                );
-                return ResponseEntity.status(HttpStatus.OK).body(response);
+                return buildResponse(true,"Ticket updated successfully.", HttpStatus.OK, ticket);
             }
         }
-        response = new APIResponse<>(
-                "Ticket not found with ID: " + ticketId + ".",
-                HttpStatus.OK,
-                null,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        return buildResponse(false,"No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null);
     }
 
+    @Operation(summary = "Delete a ticket by ID")
     @DeleteMapping("/{ticketId}")
     public ResponseEntity<APIResponse<Ticket>> deleteTicket(@PathVariable Long ticketId) {
-        APIResponse<Ticket> response;
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 TICKETS.remove(ticket);
-                response = new APIResponse<>(
-                        "Ticket successfully deleted.",
-                        HttpStatus.OK,
-                        ticket,
-                        LocalDateTime.now()
-                );
-                return ResponseEntity.status(HttpStatus.OK).body(response);
+                return buildResponse(true,"Ticket deleted successfully.", HttpStatus.OK, null);
             }
         }
-        response = new APIResponse<>(
-                "Ticket not found with ID: " + ticketId + ".",
-                HttpStatus.OK,
-                null,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        return buildResponse(false,"No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null);
     }
 
+    @Operation(summary = "Get all tickets")
     @GetMapping
     public ResponseEntity<APIResponse<List<Ticket>>> getAllTickets() {
-        APIResponse<List<Ticket>> response = new APIResponse<>(
-                "Ticket successfully created.",
-                HttpStatus.OK,
-                TICKETS,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return buildResponse(true,"All tickets retrieved successfully.", HttpStatus.OK, TICKETS);
     }
 
+    @Operation(summary = "Filter tickets by status or travel date")
     @GetMapping("/filter")
-    public ResponseEntity<APIResponse<List<Ticket>>> filteredTicketsByTickStatusOrTravelDate(@RequestParam TicketStatus ticketStatus, @RequestParam LocalDate travelDate) {
-        List<Ticket> filteredTickets = new ArrayList<>();
-        for (Ticket ticket : TICKETS) {
-            if (ticket.getTicketStatus().equals(ticketStatus) || ticket.getTravelDate().equals(travelDate)) {
-                filteredTickets.add(ticket);
-            }
-        }
-        APIResponse<List<Ticket>> response = new APIResponse<>(
-                "Ticket successfully filtered.",
-                HttpStatus.OK,
-                filteredTickets,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<APIResponse<List<Ticket>>> filteredTicketsByTickStatusOrTravelDate(@RequestParam(required = false) TicketStatus ticketStatus, @RequestParam(required = false) LocalDate travelDate) {
+        List<Ticket> filteredTickets = TICKETS.stream()
+                .filter(ticket -> ticket.getTicketStatus().equals(ticketStatus) || ticket.getTravelDate().equals(travelDate))
+                .toList();
+        return buildResponse(true,"Tickets filtered successfully.", HttpStatus.OK, filteredTickets);
     }
 
+    @Operation(summary = "Search tickets by passenger name")
     @GetMapping("/search")
     public ResponseEntity<APIResponse<List<Ticket>>> searchByPassengerName(@RequestParam String passengerName) {
-        List<Ticket> searchedTickets = new ArrayList<>();
-        for (Ticket ticket : TICKETS) {
-            if (ticket.getPassengerName().equals(passengerName)) {
-                searchedTickets.add(ticket);
-            }
-        }
-        APIResponse<List<Ticket>> response = new APIResponse<>(
-                "Ticket successfully searched.",
-                HttpStatus.OK,
-                searchedTickets,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        List<Ticket> searchedTickets = TICKETS.stream()
+                .filter(ticket -> ticket.getPassengerName().equalsIgnoreCase(passengerName))
+                .toList();
+        return buildResponse(true,"Tickets searched successfully.", HttpStatus.OK, searchedTickets);
     }
 
+    @Operation(summary = "Bulk update payment status for multiple tickets")
     @PutMapping
     public ResponseEntity<APIResponse<List<Ticket>>> updatePaymentStatus(@RequestBody UpdatePaymentStatusRequest updatePaymentStatusRequest) {
-        List<Ticket> tickets = new ArrayList<>();
+        List<Ticket> updatedTickets = new ArrayList<>();
         for (Ticket ticket : TICKETS) {
-            for (Long ticketId : updatePaymentStatusRequest.getTicketIds()) {
-                if (ticket.getTicketId().equals(ticketId)) {
-                    ticket.setPaymentStatus(updatePaymentStatusRequest.getPaymentStatus());
-                    tickets.add(ticket);
-                }
+            if (updatePaymentStatusRequest.getTicketIds().contains(ticket.getTicketId())) {
+                ticket.setPaymentStatus(updatePaymentStatusRequest.getPaymentStatus());
+                updatedTickets.add(ticket);
             }
         }
-        APIResponse<List<Ticket>> response = new APIResponse<>(
-                "Ticket successfully updated payment status.",
-                HttpStatus.OK,
-                tickets,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return buildResponse(true,"Payment status updated successfully.", HttpStatus.OK, updatedTickets);
     }
 
+    @Operation(summary = "Bulk create tickets")
     @PostMapping("/bulk")
     public ResponseEntity<APIResponse<List<Ticket>>> bulkTickets(@RequestBody List<TicketRequest> ticketRequests) {
-        List<Ticket> tickets = new ArrayList<>();
+        List<Ticket> createdTickets = new ArrayList<>();
         for (TicketRequest ticketRequest : ticketRequests) {
             Ticket ticket = new Ticket(
                     TICKET_ID.incrementAndGet(),
@@ -211,15 +144,8 @@ public class TicketController {
                     ticketRequest.getSeatNumber()
             );
             TICKETS.add(ticket);
-            tickets.add(ticket);
+            createdTickets.add(ticket);
         }
-
-        APIResponse<List<Ticket>> response = new APIResponse<>(
-                "Ticket successfully created.",
-                HttpStatus.CREATED,
-                tickets,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return buildResponse(true,"Bulk tickets created successfully.", HttpStatus.CREATED, createdTickets);
     }
 }

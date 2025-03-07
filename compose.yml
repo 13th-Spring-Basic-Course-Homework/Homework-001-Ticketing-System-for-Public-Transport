@@ -1,0 +1,8 @@
+services:
+  ticketing-system-for-public-transport-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "9090:8080"

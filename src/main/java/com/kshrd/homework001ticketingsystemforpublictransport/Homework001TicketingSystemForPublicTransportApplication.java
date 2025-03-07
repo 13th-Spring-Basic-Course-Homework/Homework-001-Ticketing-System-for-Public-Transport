@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @OpenAPIDefinition(
         info = @Info(
-                title = " Ticketing System for Public Transport",
+                title = "Ticketing System for Public Transport",
                 description = "The Ticketing System for Public Transport is a Spring Boot application for managing ticket bookings, payments, and scheduling.",
                 version = "1.0")
 )
