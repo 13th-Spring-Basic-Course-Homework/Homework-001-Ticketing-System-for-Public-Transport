@@ -4,6 +4,7 @@ import com.kshrd.homework001ticketingsystemforpublictransport.model.Ticket;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request.TicketRequest;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request.UpdatePaymentStatusRequest;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.response.APIResponse;
+import com.kshrd.homework001ticketingsystemforpublictransport.model.dto.response.PagedResponse;
 import com.kshrd.homework001ticketingsystemforpublictransport.model.enums.TicketStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -13,11 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.kshrd.homework001ticketingsystemforpublictransport.model.utils.ResponseUtil.buildResponse;
+import static com.kshrd.homework001ticketingsystemforpublictransport.model.utils.ResponseUtil.pageResponse;
 
 @RestController
 @RequestMapping("api/v1/tickets")
@@ -48,7 +49,7 @@ public class TicketController {
                 ticketRequest.getSeatNumber()
         );
         TICKETS.add(ticket);
-        return buildResponse(true,"Ticket created successfully.", HttpStatus.CREATED, ticket);
+        return buildResponse(true, "Ticket created successfully.", HttpStatus.CREATED, ticket);
     }
 
     @Operation(summary = "Get a ticket by ID")
@@ -57,8 +58,8 @@ public class TicketController {
         return TICKETS.stream()
                 .filter(ticket -> ticket.getTicketId().equals(ticketId))
                 .findFirst()
-                .map(ticket -> buildResponse(true,"Ticket retrieved successfully.", HttpStatus.OK, ticket))
-                .orElse(buildResponse(false,"No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null));
+                .map(ticket -> buildResponse(true, "Ticket retrieved successfully.", HttpStatus.OK, ticket))
+                .orElse(buildResponse(false, "No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null));
     }
 
     @Operation(summary = "Update an existing ticket by ID")
@@ -74,10 +75,10 @@ public class TicketController {
                 ticket.setPaymentStatus(ticketRequest.getPaymentStatus());
                 ticket.setTicketStatus(ticketRequest.getTicketStatus());
                 ticket.setSeatNumber(ticketRequest.getSeatNumber());
-                return buildResponse(true,"Ticket updated successfully.", HttpStatus.OK, ticket);
+                return buildResponse(true, "Ticket updated successfully.", HttpStatus.OK, ticket);
             }
         }
-        return buildResponse(false,"No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null);
+        return buildResponse(false, "No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null);
     }
 
     @Operation(summary = "Delete a ticket by ID")
@@ -86,16 +87,21 @@ public class TicketController {
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 TICKETS.remove(ticket);
-                return buildResponse(true,"Ticket deleted successfully.", HttpStatus.OK, null);
+                return buildResponse(true, "Ticket deleted successfully.", HttpStatus.OK, null);
             }
         }
-        return buildResponse(false,"No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null);
+        return buildResponse(false, "No ticket found with ID: " + ticketId, HttpStatus.NOT_FOUND, null);
     }
 
     @Operation(summary = "Get all tickets")
     @GetMapping
-    public ResponseEntity<APIResponse<List<Ticket>>> getAllTickets() {
-        return buildResponse(true,"All tickets retrieved successfully.", HttpStatus.OK, TICKETS);
+    public ResponseEntity<APIResponse<PagedResponse<List<Ticket>>>> getAllTickets(@RequestParam(defaultValue = "1") @Positive Integer page, @RequestParam(defaultValue = "10") @Positive Integer size) {
+        int offset = (page - 1) * size;
+        List<Ticket> paginatedTickets = TICKETS.stream()
+                .skip(offset)
+                .limit(size)
+                .toList();
+        return buildResponse(true, "All tickets retrieved successfully.", HttpStatus.OK, pageResponse(paginatedTickets, TICKETS.size(), page, size));
     }
 
     @Operation(summary = "Filter tickets by status and travel date")
@@ -104,7 +110,7 @@ public class TicketController {
         List<Ticket> filteredTickets = TICKETS.stream()
                 .filter(ticket -> ticket.getTicketStatus().equals(ticketStatus) && ticket.getTravelDate().equals(travelDate))
                 .toList();
-        return buildResponse(true,"Tickets filtered successfully.", HttpStatus.OK, filteredTickets);
+        return buildResponse(true, "Tickets filtered successfully.", HttpStatus.OK, filteredTickets);
     }
 
     @Operation(summary = "Search tickets by passenger name")
@@ -113,7 +119,7 @@ public class TicketController {
         List<Ticket> searchedTickets = TICKETS.stream()
                 .filter(ticket -> ticket.getPassengerName().equalsIgnoreCase(passengerName))
                 .toList();
-        return buildResponse(true,"Tickets searched successfully.", HttpStatus.OK, searchedTickets);
+        return buildResponse(true, "Tickets searched successfully.", HttpStatus.OK, searchedTickets);
     }
 
     @Operation(summary = "Bulk update payment status for multiple tickets")
@@ -126,7 +132,7 @@ public class TicketController {
                 updatedTickets.add(ticket);
             }
         }
-        return buildResponse(true,"Payment status updated successfully.", HttpStatus.OK, updatedTickets);
+        return buildResponse(true, "Payment status updated successfully.", HttpStatus.OK, updatedTickets);
     }
 
     @Operation(summary = "Bulk create tickets")
@@ -148,6 +154,6 @@ public class TicketController {
             TICKETS.add(ticket);
             createdTickets.add(ticket);
         }
-        return buildResponse(true,"Bulk tickets created successfully.", HttpStatus.CREATED, createdTickets);
+        return buildResponse(true, "Bulk tickets created successfully.", HttpStatus.CREATED, createdTickets);
     }
 }
