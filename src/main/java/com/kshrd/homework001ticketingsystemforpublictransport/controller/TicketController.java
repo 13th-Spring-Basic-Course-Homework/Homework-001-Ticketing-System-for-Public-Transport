@@ -53,8 +53,8 @@ public class TicketController {
     }
 
     @Operation(summary = "Get a ticket by ID")
-    @GetMapping("/{ticketId}")
-    public ResponseEntity<APIResponse<Ticket>> getTicket(@PathVariable @Positive Long ticketId) {
+    @GetMapping("/{ticket-id}")
+    public ResponseEntity<APIResponse<Ticket>> getTicket(@PathVariable("ticket-id") @Positive Long ticketId) {
         return TICKETS.stream()
                 .filter(ticket -> ticket.getTicketId().equals(ticketId))
                 .findFirst()
@@ -63,8 +63,8 @@ public class TicketController {
     }
 
     @Operation(summary = "Update an existing ticket by ID")
-    @PutMapping("/{ticketId}")
-    public ResponseEntity<APIResponse<Ticket>> updateTicket(@PathVariable @Positive Long ticketId, @RequestBody @Valid TicketRequest ticketRequest) {
+    @PutMapping("/{ticket-id}")
+    public ResponseEntity<APIResponse<Ticket>> updateTicket(@PathVariable("ticket-id") @Positive Long ticketId, @RequestBody @Valid TicketRequest ticketRequest) {
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 ticket.setPassengerName(ticketRequest.getPassengerName());
@@ -82,8 +82,8 @@ public class TicketController {
     }
 
     @Operation(summary = "Delete a ticket by ID")
-    @DeleteMapping("/{ticketId}")
-    public ResponseEntity<APIResponse<Ticket>> deleteTicket(@PathVariable @Positive Long ticketId) {
+    @DeleteMapping("/{ticket-id}")
+    public ResponseEntity<APIResponse<Ticket>> deleteTicket(@PathVariable("ticket-id") @Positive Long ticketId) {
         for (Ticket ticket : TICKETS) {
             if (ticket.getTicketId().equals(ticketId)) {
                 TICKETS.remove(ticket);

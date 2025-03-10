@@ -1,11 +1,7 @@
 package com.kshrd.homework001ticketingsystemforpublictransport.model.dto.request;
 
 import com.kshrd.homework001ticketingsystemforpublictransport.model.enums.TicketStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +17,7 @@ public class TicketRequest {
     @NotNull
     private String passengerName;
 
-    @PastOrPresent
+    @FutureOrPresent
     private LocalDate travelDate;
 
     @NotBlank
